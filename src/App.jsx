@@ -105,125 +105,146 @@ function todayDayNum() {
 // ── Shared CSS ─────────────────────────────────────────────────────────────
 const BASE_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { background: oklch(8% 0.005 260); color: oklch(92% 0.005 260); font-family: 'Syne', sans-serif; min-height: 100vh; overscroll-behavior: none; }
+  html, body {
+    background: oklch(7% 0.01 265);
+    color: oklch(90% 0.006 265);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overscroll-behavior: none;
+  }
   ::-webkit-scrollbar { display: none; }
-  input { background: transparent; border: none; outline: none; font-family: 'JetBrains Mono', monospace; color: oklch(92% 0.005 260); width: 100%; }
-  input::placeholder { color: oklch(22% 0.005 260); }
+  input {
+    background: transparent; border: none; outline: none;
+    font-family: 'JetBrains Mono', monospace;
+    color: oklch(88% 0.006 265); width: 100%;
+  }
+  input::placeholder { color: oklch(24% 0.006 265); }
   button { cursor: pointer; border: none; outline: none; background: none; font-family: 'Syne', sans-serif; }
   .mono { font-family: 'JetBrains Mono', monospace; }
 
-  @keyframes slideIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
-  @keyframes fadeUp  { from { opacity: 0; transform: translateY(8px);  } to { opacity: 1; transform: translateY(0); } }
-  .slide { animation: slideIn .22s ease both; }
-  .fadeup { animation: fadeUp .25s ease both; }
+  /* ── Animations ── */
+  @keyframes slideIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes fadeUp  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes rowPop  { 0% { transform: scale(1); } 35% { transform: scale(1.03); } 100% { transform: scale(1); } }
+  @keyframes flashFade  { 0% { opacity: 0.45; } 100% { opacity: 0; } }
+  @keyframes celebBurst { 0% { opacity: 0.6; transform: scale(0.94); } 40% { opacity: 0.8; transform: scale(1.04); } 100% { opacity: 0; transform: scale(1); } }
+  @keyframes ring { 0% { transform: translate(-50%,-50%) scale(0.15); opacity: 0.9; } 100% { transform: translate(-50%,-50%) scale(3); opacity: 0; } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
 
+  .slide  { animation: slideIn .24s cubic-bezier(0.22,1,0.36,1) both; }
+  .fadeup { animation: fadeUp  .26s cubic-bezier(0.22,1,0.36,1) both; }
+  .ex-row-pop  { animation: rowPop 0.3s cubic-bezier(0.22,1,0.36,1); }
+  .ex-row-done { opacity: 0.38; }
+
+  /* ── Day tabs ── */
   .day-tab {
-    padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 700;
-    letter-spacing: 1.5px; transition: background .18s, color .18s; flex-shrink: 0;
+    padding: 8px 18px; border-radius: 20px; font-size: 11px; font-weight: 800;
+    letter-spacing: 2px; flex-shrink: 0;
+    transition: background .2s, color .2s, box-shadow .2s;
   }
+
+  /* ── Exercise rows ── */
   .ex-row {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 13px 0; border-bottom: 1px solid oklch(13% 0.005 260);
+    padding: 15px 0; border-bottom: 1px solid oklch(14% 0.008 265);
+    transition: opacity .2s;
   }
   .ex-row:last-child { border-bottom: none; }
 
+  /* ── Bottom nav ── */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    display: flex; justify-content: center; gap: 0;
-    background: oklch(10% 0.006 260);
-    border-top: 1px solid oklch(14% 0.005 260);
-    z-index: 50; padding-bottom: env(safe-area-inset-bottom, 0px);
+    display: flex; justify-content: center;
+    background: oklch(9.5% 0.01 265);
+    border-top: 1px solid oklch(15% 0.008 265);
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .nav-btn {
-    flex: 1; max-width: 200px; padding: 14px 0 12px;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-    color: oklch(35% 0.005 260); transition: color .18s;
+    flex: 1; max-width: 200px; padding: 13px 0 11px;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    font-size: 9px; font-weight: 800; letter-spacing: 2px;
+    color: oklch(32% 0.006 265);
+    transition: color .2s;
+    position: relative;
   }
-  .nav-btn.active { color: oklch(92% 0.005 260); }
-  .nav-icon { font-size: 18px; line-height: 1; }
+  .nav-btn::before {
+    content: ''; position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 2px; border-radius: 0 0 2px 2px;
+    background: oklch(70% 0.01 265);
+    transition: width .2s cubic-bezier(0.22,1,0.36,1);
+  }
+  .nav-btn.active { color: oklch(90% 0.006 265); }
+  .nav-btn.active::before { width: 28px; }
+  .nav-icon { line-height: 1; display: flex; align-items: center; }
 
+  /* ── Meal rows ── */
   .meal-row {
     display: flex; align-items: center; gap: 14px;
-    padding: 13px 0; border-bottom: 1px solid oklch(13% 0.005 260);
+    padding: 14px 0; border-bottom: 1px solid oklch(14% 0.008 265);
+    transition: opacity .15s;
   }
   .meal-row:last-child { border-bottom: none; }
 
+  /* ── Checkboxes ── */
   .check-box {
-    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
-    border: 1.5px solid oklch(25% 0.006 260);
+    width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+    border: 1.5px solid oklch(26% 0.008 265);
     display: flex; align-items: center; justify-content: center;
-    transition: all .15s; cursor: pointer;
+    transition: all .18s cubic-bezier(0.22,1,0.36,1);
   }
   .check-box.checked {
-    background: oklch(68% 0.18 145); border-color: oklch(68% 0.18 145);
+    background: oklch(68% 0.19 145);
+    border-color: oklch(68% 0.19 145);
+    box-shadow: 0 0 10px oklch(68% 0.19 145 / 0.35);
   }
 
+  /* ── Sync dot ── */
   .sync-dot {
-    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-    transition: background .3s;
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    transition: background .4s;
   }
-  .sync-dot.synced   { background: oklch(68% 0.18 145); }
-  .sync-dot.syncing  { background: oklch(72% 0.14 55);  animation: pulse 1s ease-in-out infinite; }
-  .sync-dot.offline  { background: oklch(35% 0.005 260); }
-  .sync-dot.error    { background: oklch(62% 0.2 25); }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .sync-dot.synced  { background: oklch(68% 0.19 145); box-shadow: 0 0 5px oklch(68% 0.19 145 / 0.5); }
+  .sync-dot.syncing { background: oklch(74% 0.15 55); animation: pulse 1.2s ease-in-out infinite; }
+  .sync-dot.offline { background: oklch(28% 0.006 265); }
+  .sync-dot.error   { background: oklch(64% 0.2 25); }
 
+  /* ── Progress bars ── */
   .prog-bar-track {
-    height: 4px; border-radius: 2px;
-    background: oklch(14% 0.005 260); overflow: hidden;
+    height: 5px; border-radius: 3px;
+    background: oklch(15% 0.008 265); overflow: visible;
+    position: relative;
   }
   .prog-bar-fill {
-    height: 100%; border-radius: 2px;
-    transition: width .3s ease-out;
+    height: 100%; border-radius: 3px;
+    transition: width .35s cubic-bezier(0.22,1,0.36,1);
   }
 
+  /* ── Day dots (nutrition grid) ── */
   .day-dot {
-    width: 28px; height: 28px; border-radius: 8px;
+    width: 32px; height: 32px; border-radius: 9px;
     display: flex; align-items: center; justify-content: center;
     font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
-    transition: all .15s;
+    transition: all .18s;
   }
 
-  @keyframes rowPop {
-    0%   { transform: scale(1); }
-    35%  { transform: scale(1.025); }
-    100% { transform: scale(1); }
-  }
-  @keyframes flashFade {
-    0%   { opacity: 0.55; }
-    100% { opacity: 0; }
-  }
-  @keyframes celebBurst {
-    0%   { opacity: 0.7; transform: scale(0.95); }
-    40%  { opacity: 0.9; transform: scale(1.03); }
-    100% { opacity: 0;   transform: scale(1); }
-  }
-  @keyframes ring {
-    0%   { transform: translate(-50%,-50%) scale(0.2); opacity: 0.8; }
-    100% { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
-  }
-
-  .ex-row-done {
-    opacity: 0.42;
-  }
-  .ex-row-pop {
-    animation: rowPop 0.28s ease-out;
-  }
+  /* ── Flash overlays ── */
   .screen-flash {
     position: fixed; inset: 0; pointer-events: none; z-index: 998;
-    animation: flashFade 0.45s ease-out forwards;
+    animation: flashFade 0.5s ease-out forwards;
   }
   .screen-celebrate {
     position: fixed; inset: 0; pointer-events: none; z-index: 998;
-    animation: celebBurst 0.6s ease-out forwards;
+    animation: celebBurst 0.65s ease-out forwards;
   }
   .ring {
-    position: fixed; left: 50%; top: 45%; width: 100px; height: 100px;
+    position: fixed; left: 50%; top: 45%; width: 120px; height: 120px;
     border-radius: 50%; pointer-events: none; z-index: 999;
-    border: 3px solid currentColor;
-    animation: ring 0.6s ease-out forwards;
+    border: 2.5px solid currentColor;
+    animation: ring 0.65s ease-out forwards;
   }
 `;
 
@@ -399,183 +420,201 @@ export default function App() {
       )}
 
       {/* ── WORKOUT view ─────────────────────────────────────────────── */}
-      {view === "workout" && mode === "display" && (
-        <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 80px" }}>
-          {/* Header */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 22px 18px" }}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
-                <div style={{ fontSize: 11, color: "oklch(32% 0.005 260)", letterSpacing: 2, fontWeight: 600 }}>
-                  {new Date().toLocaleDateString("en-GB", { weekday: "long" }).toUpperCase()}
+      {view === "workout" && mode === "display" && (() => {
+        const doneCount = currentDay.exercises.filter(e => doneExs.has(e)).length;
+        const total     = currentDay.exercises.length;
+        return (
+          <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 88px" }}>
+            {/* Header */}
+            <div style={{ padding: "30px 24px 20px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <div style={{ fontSize: 10, color: "oklch(36% 0.008 265)", letterSpacing: 2.5, fontWeight: 700 }}>
+                    {new Date().toLocaleDateString("en-GB", { weekday: "long" }).toUpperCase()}
+                  </div>
+                  <div className={`sync-dot ${syncStatus}`} title={syncStatus} />
                 </div>
-                <div className={`sync-dot ${syncStatus}`} title={syncStatus} />
+                <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.8, lineHeight: 1 }}>
+                  Push Pull Legs
+                </div>
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: -0.5 }}>
-                Push Pull Legs
-              </div>
-            </div>
-            <button onClick={openConfig} style={{
-              padding: "8px 14px", borderRadius: 8,
-              background: "oklch(12% 0.005 260)", color: "oklch(38% 0.005 260)",
-              fontSize: 12, fontWeight: 700, letterSpacing: 1,
-              border: "1px solid oklch(16% 0.005 260)",
-            }}>
-              EDIT
-            </button>
-          </div>
-
-          {/* Day tabs */}
-          <div style={{ display: "flex", gap: 6, padding: "0 22px 20px", overflowX: "auto" }}>
-            {PROGRAM.map(day => (
-              <button
-                key={day.key}
-                className="day-tab"
-                onClick={() => setActiveDay(day.key)}
-                style={{
-                  background: activeDay === day.key ? day.color : "oklch(11% 0.005 260)",
-                  color:      activeDay === day.key ? "oklch(8% 0.005 260)" : "oklch(30% 0.005 260)",
-                  border:     activeDay === day.key ? "none" : "1px solid oklch(16% 0.005 260)",
-                }}
-              >
-                {day.label}
+              <button onClick={openConfig} style={{
+                marginTop: 4,
+                padding: "8px 16px", borderRadius: 20,
+                background: "oklch(13% 0.01 265)", color: "oklch(44% 0.008 265)",
+                fontSize: 11, fontWeight: 800, letterSpacing: 1.5,
+                border: "1px solid oklch(18% 0.01 265)",
+              }}>
+                EDIT
               </button>
-            ))}
-          </div>
+            </div>
 
-          {/* Exercise list */}
-          <div className="slide" key={activeDay} style={{
-            margin: "0 22px",
-            background: "oklch(10% 0.005 260)",
-            borderRadius: 16, padding: "4px 20px",
-            border: "1px solid oklch(13% 0.005 260)",
-          }}>
-            {currentDay.exercises.length === 0 ? (
-              <div style={{ padding: "30px 0", textAlign: "center", color: "oklch(22% 0.005 260)", fontSize: 13 }}>
-                TBA
+            {/* Day tabs */}
+            <div style={{ display: "flex", gap: 7, padding: "0 24px 22px", overflowX: "auto" }}>
+              {PROGRAM.map(day => (
+                <button
+                  key={day.key}
+                  className="day-tab"
+                  onClick={() => { setActiveDay(day.key); setDoneExs(new Set()); }}
+                  style={{
+                    background: activeDay === day.key ? day.color : "oklch(12% 0.01 265)",
+                    color:      activeDay === day.key ? "oklch(7% 0.005 265)" : "oklch(34% 0.008 265)",
+                    border:     activeDay === day.key ? "none" : "1px solid oklch(17% 0.01 265)",
+                    boxShadow:  activeDay === day.key ? `0 0 16px ${day.color}45` : "none",
+                  }}
+                >
+                  {day.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Progress strip */}
+            {total > 0 && (
+              <div style={{ padding: "0 24px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ flex: 1, height: 3, borderRadius: 2, background: "oklch(14% 0.008 265)", overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%", borderRadius: 2,
+                    width: `${(doneCount / total) * 100}%`,
+                    background: currentDay.color,
+                    boxShadow: doneCount > 0 ? `0 0 8px ${currentDay.color}70` : "none",
+                    transition: "width .4s cubic-bezier(0.22,1,0.36,1), box-shadow .3s",
+                  }} />
+                </div>
+                <div className="mono" style={{ fontSize: 11, color: doneCount === total && total > 0 ? currentDay.color : "oklch(36% 0.008 265)", fontWeight: 500, letterSpacing: 0.5, flexShrink: 0 }}>
+                  {doneCount}/{total}
+                </div>
               </div>
-            ) : (
-              currentDay.exercises.map((ex, i) => {
-                const val  = sets[ex];
-                const done = doneExs.has(ex);
-                const popping = popEx === ex;
-                return (
-                  <div
-                    key={ex}
-                    className={`ex-row${done ? " ex-row-done" : ""}${popping ? " ex-row-pop" : ""}`}
-                    style={{ animationDelay: `${i * 35}ms`, cursor: "pointer", userSelect: "none" }}
-                    onClick={() => toggleExDone(ex, currentDay.color)}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
-                      {/* Done indicator */}
-                      <div style={{
-                        width: 18, height: 18, borderRadius: 5, flexShrink: 0,
-                        border: `1.5px solid ${done ? currentDay.color : "oklch(22% 0.005 260)"}`,
-                        background: done ? currentDay.color : "transparent",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        transition: "all .15s",
-                      }}>
-                        {done && (
-                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                            <path d="M1 3.5L3.8 6.5L9 1" stroke="oklch(8% 0.005 260)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
+            )}
+
+            {/* Exercise list */}
+            <div className="slide" key={activeDay} style={{
+              margin: "0 24px",
+              background: "oklch(10.5% 0.01 265)",
+              borderRadius: 18, padding: "2px 20px",
+              border: `1px solid ${doneCount > 0 ? `${currentDay.color}22` : "oklch(15% 0.01 265)"}`,
+              boxShadow: doneCount > 0 ? `0 0 24px ${currentDay.color}0d` : "none",
+              transition: "border-color .4s, box-shadow .4s",
+            }}>
+              {total === 0 ? (
+                <div style={{ padding: "32px 0", textAlign: "center", color: "oklch(24% 0.008 265)", fontSize: 13, letterSpacing: 1 }}>
+                  TBA
+                </div>
+              ) : (
+                currentDay.exercises.map((ex, i) => {
+                  const val     = sets[ex];
+                  const done    = doneExs.has(ex);
+                  const popping = popEx === ex;
+                  return (
+                    <div
+                      key={ex}
+                      className={`ex-row${done ? " ex-row-done" : ""}${popping ? " ex-row-pop" : ""}`}
+                      style={{ animationDelay: `${i * 30}ms`, cursor: "pointer", userSelect: "none" }}
+                      onClick={() => toggleExDone(ex, currentDay.color)}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
+                        <div style={{
+                          width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+                          border: `1.5px solid ${done ? currentDay.color : "oklch(24% 0.008 265)"}`,
+                          background: done ? currentDay.color : "transparent",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          transition: "all .18s cubic-bezier(0.22,1,0.36,1)",
+                          boxShadow: done ? `0 0 8px ${currentDay.color}55` : "none",
+                        }}>
+                          {done && (
+                            <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                              <path d="M1 3.5L3.8 6.5L9 1" stroke="oklch(7% 0.005 265)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: done ? "oklch(36% 0.008 265)" : "oklch(84% 0.007 265)", textDecoration: done ? "line-through" : "none", transition: "color .18s" }}>
+                          {ex}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 14 }}>
+                        {val ? (
+                          <div className="mono" style={{
+                            fontSize: 13, fontWeight: 500,
+                            color: done ? "oklch(32% 0.008 265)" : currentDay.color,
+                            letterSpacing: -0.2, whiteSpace: "nowrap",
+                            transition: "color .18s",
+                            textShadow: done ? "none" : `0 0 12px ${currentDay.color}60`,
+                          }}>
+                            {val}
+                          </div>
+                        ) : (
+                          <div className="mono" style={{ fontSize: 13, color: "oklch(24% 0.008 265)" }}>—</div>
                         )}
                       </div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: done ? "oklch(40% 0.005 260)" : "oklch(78% 0.005 260)", textDecoration: done ? "line-through" : "none", transition: "color .15s" }}>
-                        {ex}
-                      </div>
                     </div>
-                    <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
-                      {val ? (
-                        <div className="mono" style={{
-                          fontSize: 14, fontWeight: 500,
-                          color: done ? "oklch(35% 0.005 260)" : currentDay.color,
-                          letterSpacing: -0.3, whiteSpace: "nowrap", transition: "color .15s",
-                        }}>
-                          {val}
-                        </div>
-                      ) : (
-                        <div className="mono" style={{ fontSize: 13, color: "oklch(22% 0.005 260)" }}>—</div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+              )}
+            </div>
           </div>
-
-          {/* Accent line */}
-          <div style={{
-            height: 2, margin: "16px 22px 0",
-            background: `linear-gradient(90deg, ${currentDay.color}55, transparent)`,
-            borderRadius: 2,
-          }} />
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── WORKOUT config mode ───────────────────────────────────────── */}
       {view === "workout" && mode === "config" && (
-        <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 80px" }}>
-          {/* Config header */}
+        <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 88px" }}>
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "24px 22px 18px",
+            padding: "30px 24px 20px",
             position: "sticky", top: 0,
-            background: "oklch(8% 0.005 260)", zIndex: 10,
-            borderBottom: "1px solid oklch(13% 0.005 260)",
+            background: "oklch(7% 0.01 265)", zIndex: 10,
+            borderBottom: "1px solid oklch(14% 0.01 265)",
           }}>
             <div>
-              <div style={{ fontSize: 11, color: "oklch(32% 0.005 260)", letterSpacing: 2, fontWeight: 600 }}>EDIT MODE</div>
-              <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.5, marginTop: 2 }}>Your Sets</div>
+              <div style={{ fontSize: 10, color: "oklch(36% 0.008 265)", letterSpacing: 2.5, fontWeight: 700, marginBottom: 5 }}>EDIT MODE</div>
+              <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: -0.6 }}>Your Sets</div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => setMode("display")} style={{
-                padding: "8px 14px", borderRadius: 8,
-                background: "oklch(12% 0.005 260)", color: "oklch(38% 0.005 260)",
-                fontSize: 12, fontWeight: 700, letterSpacing: 1,
-                border: "1px solid oklch(16% 0.005 260)",
+                padding: "9px 16px", borderRadius: 20,
+                background: "oklch(13% 0.01 265)", color: "oklch(44% 0.008 265)",
+                fontSize: 11, fontWeight: 800, letterSpacing: 1.5,
+                border: "1px solid oklch(18% 0.01 265)",
               }}>
                 CANCEL
               </button>
               <button onClick={saveConfig} style={{
-                padding: "8px 16px", borderRadius: 8,
-                background: "oklch(92% 0.005 260)", color: "oklch(8% 0.005 260)",
-                fontSize: 12, fontWeight: 800, letterSpacing: 1,
+                padding: "9px 18px", borderRadius: 20,
+                background: "oklch(88% 0.006 265)", color: "oklch(7% 0.01 265)",
+                fontSize: 11, fontWeight: 800, letterSpacing: 1.5,
               }}>
                 SAVE
               </button>
             </div>
           </div>
 
-          <div style={{ padding: "16px 22px 0" }}>
-            <div style={{ fontSize: 12, color: "oklch(32% 0.005 260)", marginBottom: 20, lineHeight: 1.6 }}>
-              Enter weight x reps exactly as you write it. Leave blank to show —
+          <div style={{ padding: "20px 24px 0" }}>
+            <div style={{ fontSize: 12, color: "oklch(36% 0.008 265)", marginBottom: 22, lineHeight: 1.7 }}>
+              Type weight and reps exactly how you write it. Leave blank to show —
             </div>
             {PROGRAM.map(day => {
               if (day.exercises.length === 0) return null;
               return (
                 <div key={day.key} style={{ marginBottom: 28 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: day.color, marginBottom: 10 }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 2.5, color: day.color, marginBottom: 12, textShadow: `0 0 10px ${day.color}50` }}>
                     {day.label}
                   </div>
-                  <div style={{ background: "oklch(10% 0.005 260)", borderRadius: 14, padding: "0 18px", border: "1px solid oklch(13% 0.005 260)" }}>
+                  <div style={{ background: "oklch(10.5% 0.01 265)", borderRadius: 16, padding: "0 18px", border: "1px solid oklch(15% 0.01 265)" }}>
                     {day.exercises.map((ex, i) => (
                       <div key={ex} style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        display: "flex", alignItems: "center",
                         padding: "14px 0",
-                        borderBottom: i < day.exercises.length - 1 ? "1px solid oklch(13% 0.005 260)" : "none",
-                        gap: 12,
+                        borderBottom: i < day.exercises.length - 1 ? "1px solid oklch(14% 0.01 265)" : "none",
+                        gap: 14,
                       }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "oklch(55% 0.005 260)", flexShrink: 0, width: "42%" }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "oklch(52% 0.008 265)", flexShrink: 0, width: "40%" }}>
                           {ex}
                         </div>
                         <div style={{
-                          flex: 1, background: "oklch(13% 0.005 260)", borderRadius: 8,
-                          padding: "9px 12px", border: "1px solid oklch(18% 0.005 260)",
+                          flex: 1, background: "oklch(13% 0.01 265)", borderRadius: 10,
+                          padding: "10px 14px", border: "1px solid oklch(19% 0.01 265)",
                         }}>
                           <input
-                            type="text"
-                            inputMode="text"
-                            placeholder="e.g. 120x7"
+                            type="text" inputMode="text" placeholder="e.g. 120x7"
                             value={editing[ex] ?? ""}
                             onChange={e => setEditing(prev => ({ ...prev, [ex]: e.target.value }))}
                             style={{ fontSize: 14, fontWeight: 500 }}
@@ -593,32 +632,35 @@ export default function App() {
 
       {/* ── NUTRITION view ───────────────────────────────────────────── */}
       {view === "nutrition" && (
-        <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 80px" }}>
+        <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 88px" }}>
           {/* Header */}
-          <div style={{ padding: "24px 22px 18px" }}>
-            <div style={{ fontSize: 11, color: "oklch(32% 0.005 260)", letterSpacing: 2, fontWeight: 600, marginBottom: 2 }}>
+          <div style={{ padding: "30px 24px 18px" }}>
+            <div style={{ fontSize: 10, color: "oklch(36% 0.008 265)", letterSpacing: 2.5, fontWeight: 700, marginBottom: 6 }}>
               30-DAY CHALLENGE
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-              <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: -0.5 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 12 }}>
+              <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.8, lineHeight: 1 }}>
                 140g Protein
               </div>
-              <div className="mono" style={{ fontSize: 13, color: "oklch(55% 0.005 260)", paddingBottom: 3 }}>
-                {completedDays}/30 days
+              <div style={{ textAlign: "right", paddingBottom: 2 }}>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: completedDays > 0 ? "oklch(68% 0.19 145)" : "oklch(44% 0.008 265)", lineHeight: 1 }}>
+                  {completedDays}
+                </div>
+                <div style={{ fontSize: 10, color: "oklch(36% 0.008 265)", letterSpacing: 1, fontWeight: 700 }}>/ 30 DAYS</div>
               </div>
             </div>
-            {/* Overall progress bar */}
-            <div className="prog-bar-track" style={{ marginTop: 10 }}>
+            <div className="prog-bar-track">
               <div className="prog-bar-fill" style={{
                 width: `${(completedDays / 30) * 100}%`,
-                background: "oklch(68% 0.18 145)",
+                background: "oklch(68% 0.19 145)",
+                boxShadow: completedDays > 0 ? "0 0 8px oklch(68% 0.19 145 / 0.5)" : "none",
               }} />
             </div>
           </div>
 
           {/* 30-day dot grid */}
-          <div style={{ padding: "0 22px 18px" }}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          <div style={{ padding: "0 24px 20px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
               {PROTEIN_PLAN.map(p => {
                 const done    = dayComplete(p.day);
                 const isToday = p.day === today;
@@ -629,20 +671,11 @@ export default function App() {
                     onClick={() => setNutDay(p.day)}
                     className="day-dot"
                     style={{
-                      background: done
-                        ? "oklch(68% 0.18 145)"
-                        : isCur
-                          ? "oklch(18% 0.01 260)"
-                          : "oklch(12% 0.005 260)",
-                      color: done
-                        ? "oklch(8% 0.005 260)"
-                        : isToday
-                          ? "oklch(75% 0.14 55)"
-                          : isCur
-                            ? "oklch(70% 0.005 260)"
-                            : "oklch(35% 0.005 260)",
-                      outline: isToday ? "1.5px solid oklch(65% 0.14 55)" : "none",
-                      outlineOffset: "1px",
+                      background: done ? "oklch(68% 0.19 145)" : isCur ? "oklch(17% 0.012 265)" : "oklch(12% 0.01 265)",
+                      color:      done ? "oklch(7% 0.005 265)"  : isToday ? "oklch(76% 0.15 55)" : isCur ? "oklch(72% 0.008 265)" : "oklch(34% 0.008 265)",
+                      outline:    isToday ? "1.5px solid oklch(66% 0.15 55)" : isCur && !done ? "1.5px solid oklch(30% 0.01 265)" : "none",
+                      outlineOffset: "2px",
+                      boxShadow:  done ? "0 0 8px oklch(68% 0.19 145 / 0.4)" : "none",
                     }}
                   >
                     {p.day}
@@ -653,63 +686,73 @@ export default function App() {
           </div>
 
           {/* Day card */}
-          <div className="fadeup" key={nutDay} style={{ margin: "0 22px" }}>
+          <div className="fadeup" key={nutDay} style={{ margin: "0 24px" }}>
             {/* Day navigator */}
-            <div style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              marginBottom: 14,
-            }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <button
                 onClick={() => setNutDay(d => Math.max(1, d - 1))}
                 disabled={nutDay === 1}
                 style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  background: nutDay === 1 ? "oklch(10% 0.005 260)" : "oklch(14% 0.005 260)",
-                  color: nutDay === 1 ? "oklch(22% 0.005 260)" : "oklch(65% 0.005 260)",
-                  fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center",
-                  border: "1px solid oklch(16% 0.005 260)",
+                  width: 38, height: 38, borderRadius: 12,
+                  background: "oklch(12% 0.01 265)",
+                  color: nutDay === 1 ? "oklch(24% 0.008 265)" : "oklch(62% 0.008 265)",
+                  fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "1px solid oklch(17% 0.01 265)",
                 }}
               >
                 ‹
               </button>
               <div style={{ textAlign: "center" }}>
-                <div className="mono" style={{ fontSize: 13, fontWeight: 700, color: nutDay === today ? "oklch(72% 0.14 55)" : "oklch(55% 0.005 260)" }}>
-                  DAY {nutDay}
-                  {nutDay === today && <span style={{ marginLeft: 6, fontSize: 10, letterSpacing: 1 }}>TODAY</span>}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: nutDay === today ? "oklch(74% 0.15 55)" : "oklch(60% 0.008 265)", letterSpacing: 0.5 }}>
+                    DAY {nutDay}
+                  </div>
+                  {nutDay === today && (
+                    <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.5, color: "oklch(74% 0.15 55)", background: "oklch(74% 0.15 55 / 0.12)", padding: "2px 7px", borderRadius: 10 }}>
+                      TODAY
+                    </div>
+                  )}
                 </div>
-                <div style={{ fontSize: 12, color: "oklch(40% 0.005 260)", marginTop: 2 }}>{nutData.date}</div>
+                <div style={{ fontSize: 12, color: "oklch(42% 0.008 265)", marginTop: 3 }}>{nutData.date}</div>
               </div>
               <button
                 onClick={() => setNutDay(d => Math.min(30, d + 1))}
                 disabled={nutDay === 30}
                 style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  background: nutDay === 30 ? "oklch(10% 0.005 260)" : "oklch(14% 0.005 260)",
-                  color: nutDay === 30 ? "oklch(22% 0.005 260)" : "oklch(65% 0.005 260)",
-                  fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center",
-                  border: "1px solid oklch(16% 0.005 260)",
+                  width: 38, height: 38, borderRadius: 12,
+                  background: "oklch(12% 0.01 265)",
+                  color: nutDay === 30 ? "oklch(24% 0.008 265)" : "oklch(62% 0.008 265)",
+                  fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "1px solid oklch(17% 0.01 265)",
                 }}
               >
                 ›
               </button>
             </div>
 
-            {/* Protein progress */}
+            {/* Protein progress card */}
             <div style={{
-              background: "oklch(10% 0.005 260)", borderRadius: 16,
-              padding: "14px 20px 16px",
-              border: "1px solid oklch(13% 0.005 260)",
-              marginBottom: 12,
+              background: "oklch(10.5% 0.01 265)", borderRadius: 18,
+              padding: "16px 22px 18px",
+              border: `1px solid ${checkedPro > 0 ? "oklch(68% 0.19 145 / 0.2)" : "oklch(15% 0.01 265)"}`,
+              marginBottom: 10,
+              boxShadow: checkedPro > 0 ? "0 0 20px oklch(68% 0.19 145 / 0.08)" : "none",
+              transition: "border-color .4s, box-shadow .4s",
             }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-                <div style={{ fontSize: 12, color: "oklch(40% 0.005 260)", fontWeight: 600, letterSpacing: 0.5 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+                <div style={{ fontSize: 10, color: "oklch(38% 0.008 265)", fontWeight: 700, letterSpacing: 2 }}>
                   PROTEIN TODAY
                 </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
-                  <span className="mono" style={{ fontSize: 22, fontWeight: 500, color: checkedPro >= nutData.total ? "oklch(68% 0.18 145)" : "oklch(92% 0.005 260)" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                  <span className="mono" style={{
+                    fontSize: 24, fontWeight: 500, lineHeight: 1,
+                    color: checkedPro >= nutData.total ? "oklch(68% 0.19 145)" : "oklch(88% 0.006 265)",
+                    textShadow: checkedPro >= nutData.total ? "0 0 16px oklch(68% 0.19 145 / 0.5)" : "none",
+                    transition: "color .3s, text-shadow .3s",
+                  }}>
                     {checkedPro}
                   </span>
-                  <span className="mono" style={{ fontSize: 13, color: "oklch(40% 0.005 260)" }}>
+                  <span className="mono" style={{ fontSize: 13, color: "oklch(38% 0.008 265)" }}>
                     / {nutData.total}g
                   </span>
                 </div>
@@ -717,18 +760,17 @@ export default function App() {
               <div className="prog-bar-track">
                 <div className="prog-bar-fill" style={{
                   width: `${proFrac * 100}%`,
-                  background: checkedPro >= nutData.total
-                    ? "oklch(68% 0.18 145)"
-                    : "oklch(62% 0.16 55)",
+                  background: checkedPro >= nutData.total ? "oklch(68% 0.19 145)" : "oklch(64% 0.17 55)",
+                  boxShadow: checkedPro > 0 ? `0 0 10px ${checkedPro >= nutData.total ? "oklch(68% 0.19 145 / 0.6)" : "oklch(64% 0.17 55 / 0.5)"}` : "none",
                 }} />
               </div>
             </div>
 
             {/* Meal list */}
             <div style={{
-              background: "oklch(10% 0.005 260)", borderRadius: 16,
-              padding: "4px 20px",
-              border: "1px solid oklch(13% 0.005 260)",
+              background: "oklch(10.5% 0.01 265)", borderRadius: 18,
+              padding: "2px 20px",
+              border: "1px solid oklch(15% 0.01 265)",
             }}>
               {nutData.meals.map(([name, protein], i) => {
                 const checked = checks[i] ?? false;
@@ -737,19 +779,19 @@ export default function App() {
                     key={i}
                     className="meal-row"
                     onClick={() => toggleMeal(nutDay, i)}
-                    style={{ cursor: "pointer", userSelect: "none" }}
+                    style={{ cursor: "pointer", userSelect: "none", opacity: checked ? 0.45 : 1, transition: "opacity .2s" }}
                   >
                     <div className={`check-box${checked ? " checked" : ""}`}>
                       {checked && (
                         <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
-                          <path d="M1 4L4.5 7.5L11 1" stroke="oklch(8% 0.005 260)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M1 4L4.5 7.5L11 1" stroke="oklch(7% 0.005 265)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       )}
                     </div>
-                    <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: checked ? "oklch(45% 0.005 260)" : "oklch(80% 0.005 260)", textDecoration: checked ? "line-through" : "none", transition: "color .15s" }}>
+                    <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "oklch(82% 0.007 265)", textDecoration: checked ? "line-through" : "none" }}>
                       {name}
                     </div>
-                    <div className="mono" style={{ fontSize: 13, color: checked ? "oklch(68% 0.18 145)" : "oklch(55% 0.005 260)", flexShrink: 0 }}>
+                    <div className="mono" style={{ fontSize: 13, fontWeight: 500, color: checked ? "oklch(68% 0.19 145)" : "oklch(48% 0.008 265)", flexShrink: 0, transition: "color .18s" }}>
                       {protein}g
                     </div>
                   </div>
@@ -757,18 +799,18 @@ export default function App() {
               })}
             </div>
 
-            {/* Target note */}
-            <div style={{ textAlign: "center", marginTop: 12, fontSize: 11, color: "oklch(28% 0.005 260)", letterSpacing: 0.5 }}>
-              TARGET ~140g/DAY — BUILD MUSCLE. BUILD DISCIPLINE.
+            {/* Tagline */}
+            <div style={{ textAlign: "center", marginTop: 16, fontSize: 10, color: "oklch(26% 0.008 265)", letterSpacing: 2, fontWeight: 700 }}>
+              BUILD MUSCLE. BUILD DISCIPLINE.
             </div>
           </div>
 
-          {/* Sync status + device ID */}
-          <div style={{ margin: "20px 22px 0", padding: "14px 18px", borderRadius: 14, background: "oklch(10% 0.005 260)", border: "1px solid oklch(13% 0.005 260)" }}>
+          {/* Sync panel */}
+          <div style={{ margin: "20px 24px 0", padding: "14px 18px", borderRadius: 16, background: "oklch(10.5% 0.01 265)", border: "1px solid oklch(15% 0.01 265)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
                 <div className={`sync-dot ${syncStatus}`} />
-                <span style={{ fontSize: 12, color: "oklch(45% 0.005 260)", fontWeight: 600, letterSpacing: 0.5 }}>
+                <span style={{ fontSize: 12, color: "oklch(44% 0.008 265)", fontWeight: 600 }}>
                   {syncStatus === "synced"  && "Saved to cloud"}
                   {syncStatus === "syncing" && "Saving..."}
                   {syncStatus === "offline" && "Local only — add Supabase keys to sync"}
@@ -778,7 +820,7 @@ export default function App() {
               {supabase && (
                 <button
                   onClick={() => { setShowDevice(d => !d); setDeviceInput(getDeviceId()); }}
-                  style={{ fontSize: 11, color: "oklch(38% 0.005 260)", fontWeight: 700, letterSpacing: 1 }}
+                  style={{ fontSize: 10, color: "oklch(40% 0.008 265)", fontWeight: 800, letterSpacing: 1.5 }}
                 >
                   DEVICE ID
                 </button>
@@ -786,39 +828,28 @@ export default function App() {
             </div>
             {showDevice && supabase && (
               <div style={{ marginTop: 12 }}>
-                <div style={{ fontSize: 11, color: "oklch(35% 0.005 260)", marginBottom: 8, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 11, color: "oklch(36% 0.008 265)", marginBottom: 10, lineHeight: 1.7 }}>
                   Copy this ID to use your data on another device, or paste a saved ID to restore.
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <div style={{ flex: 1, background: "oklch(13% 0.005 260)", borderRadius: 8, padding: "9px 12px", border: "1px solid oklch(18% 0.005 260)" }}>
-                    <input
-                      value={deviceInput}
-                      onChange={e => setDeviceInput(e.target.value)}
-                      style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}
-                      spellCheck={false}
-                    />
+                  <div style={{ flex: 1, background: "oklch(13% 0.01 265)", borderRadius: 10, padding: "10px 14px", border: "1px solid oklch(19% 0.01 265)" }}>
+                    <input value={deviceInput} onChange={e => setDeviceInput(e.target.value)}
+                      style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.4 }} spellCheck={false} />
                   </div>
-                  <button
-                    onClick={() => navigator.clipboard?.writeText(getDeviceId())}
-                    style={{ padding: "9px 12px", borderRadius: 8, background: "oklch(14% 0.005 260)", border: "1px solid oklch(18% 0.005 260)", fontSize: 11, color: "oklch(55% 0.005 260)", fontWeight: 700 }}
-                  >
+                  <button onClick={() => navigator.clipboard?.writeText(getDeviceId())}
+                    style={{ padding: "10px 13px", borderRadius: 10, background: "oklch(14% 0.01 265)", border: "1px solid oklch(19% 0.01 265)", fontSize: 11, color: "oklch(52% 0.008 265)", fontWeight: 700 }}>
                     COPY
                   </button>
-                  <button
-                    onClick={async () => {
-                      if (deviceInput.trim().length < 10) return;
-                      setDeviceId(deviceInput);
-                      setSyncStatus("syncing");
-                      const remote = await remoteLoad();
-                      if (remote) {
-                        if (remote.workout)   { setSets(remote.workout);       saveWk(remote.workout); }
-                        if (remote.nutrition) { setNutChecks(remote.nutrition); saveNut(remote.nutrition); }
-                      }
-                      setSyncStatus("synced");
-                      setShowDevice(false);
-                    }}
-                    style={{ padding: "9px 12px", borderRadius: 8, background: "oklch(92% 0.005 260)", color: "oklch(8% 0.005 260)", fontSize: 11, fontWeight: 800, letterSpacing: 0.5 }}
-                  >
+                  <button onClick={async () => {
+                    if (deviceInput.trim().length < 10) return;
+                    setDeviceId(deviceInput); setSyncStatus("syncing");
+                    const remote = await remoteLoad();
+                    if (remote) {
+                      if (remote.workout)   { setSets(remote.workout);        saveWk(remote.workout); }
+                      if (remote.nutrition) { setNutChecks(remote.nutrition); saveNut(remote.nutrition); }
+                    }
+                    setSyncStatus("synced"); setShowDevice(false);
+                  }} style={{ padding: "10px 13px", borderRadius: 10, background: "oklch(88% 0.006 265)", color: "oklch(7% 0.01 265)", fontSize: 11, fontWeight: 800 }}>
                     USE
                   </button>
                 </div>
@@ -835,7 +866,7 @@ export default function App() {
           onClick={() => { setView("workout"); setMode("display"); }}
         >
           <span className="nav-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 4v16M18 4v16M6 12h12M2 7h4M18 7h4M2 17h4M18 17h4"/>
             </svg>
           </span>
@@ -846,7 +877,7 @@ export default function App() {
           onClick={() => setView("nutrition")}
         >
           <span className="nav-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"/>
             </svg>
           </span>
