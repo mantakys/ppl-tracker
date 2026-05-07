@@ -113,6 +113,8 @@ const BASE_CSS = `
     font-family: 'Syne', sans-serif;
     min-height: 100vh;
     overscroll-behavior: none;
+    overflow-x: hidden;
+    width: 100%;
   }
   ::-webkit-scrollbar { display: none; }
   input {
@@ -139,6 +141,15 @@ const BASE_CSS = `
   .ex-row-done { opacity: 0.38; }
 
   /* ── Day tabs ── */
+  .tabs-scroll {
+    display: flex; gap: 7px;
+    overflow-x: auto; overflow-y: visible;
+    padding: 0 24px 22px;
+    /* prevent this scroll container leaking to body */
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs-scroll::-webkit-scrollbar { display: none; }
+
   .day-tab {
     padding: 8px 18px; border-radius: 20px; font-size: 11px; font-weight: 800;
     letter-spacing: 2px; flex-shrink: 0;
@@ -149,7 +160,7 @@ const BASE_CSS = `
   .ex-row {
     display: flex; justify-content: space-between; align-items: center;
     padding: 15px 0; border-bottom: 1px solid oklch(14% 0.008 265);
-    transition: opacity .2s;
+    transition: opacity .2s; min-width: 0; overflow: hidden;
   }
   .ex-row:last-child { border-bottom: none; }
 
@@ -424,7 +435,7 @@ export default function App() {
         const doneCount = currentDay.exercises.filter(e => doneExs.has(e)).length;
         const total     = currentDay.exercises.length;
         return (
-          <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 88px" }}>
+          <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 88px", width: "100%", overflowX: "hidden" }}>
             {/* Header */}
             <div style={{ padding: "30px 24px 20px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
@@ -450,7 +461,7 @@ export default function App() {
             </div>
 
             {/* Day tabs */}
-            <div style={{ display: "flex", gap: 7, padding: "0 24px 22px", overflowX: "auto" }}>
+            <div className="tabs-scroll">
               {PROGRAM.map(day => (
                 <button
                   key={day.key}
@@ -511,7 +522,7 @@ export default function App() {
                       style={{ animationDelay: `${i * 30}ms`, cursor: "pointer", userSelect: "none" }}
                       onClick={() => toggleExDone(ex, currentDay.color)}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
                         <div style={{
                           width: 20, height: 20, borderRadius: 6, flexShrink: 0,
                           border: `1.5px solid ${done ? currentDay.color : "oklch(24% 0.008 265)"}`,
@@ -526,16 +537,17 @@ export default function App() {
                             </svg>
                           )}
                         </div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: done ? "oklch(36% 0.008 265)" : "oklch(84% 0.007 265)", textDecoration: done ? "line-through" : "none", transition: "color .18s" }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: done ? "oklch(36% 0.008 265)" : "oklch(84% 0.007 265)", textDecoration: done ? "line-through" : "none", transition: "color .18s", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {ex}
                         </div>
                       </div>
-                      <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 14 }}>
+                      <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12, maxWidth: "45%" }}>
                         {val ? (
                           <div className="mono" style={{
                             fontSize: 13, fontWeight: 500,
                             color: done ? "oklch(32% 0.008 265)" : currentDay.color,
-                            letterSpacing: -0.2, whiteSpace: "nowrap",
+                            letterSpacing: -0.2,
+                            wordBreak: "break-all",
                             transition: "color .18s",
                             textShadow: done ? "none" : `0 0 12px ${currentDay.color}60`,
                           }}>
@@ -556,7 +568,7 @@ export default function App() {
 
       {/* ── WORKOUT config mode ───────────────────────────────────────── */}
       {view === "workout" && mode === "config" && (
-        <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 88px" }}>
+        <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 88px", width: "100%", overflowX: "hidden" }}>
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
             padding: "30px 24px 20px",
@@ -632,7 +644,7 @@ export default function App() {
 
       {/* ── NUTRITION view ───────────────────────────────────────────── */}
       {view === "nutrition" && (
-        <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 88px" }}>
+        <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 88px", width: "100%", overflowX: "hidden" }}>
           {/* Header */}
           <div style={{ padding: "30px 24px 18px" }}>
             <div style={{ fontSize: 10, color: "oklch(36% 0.008 265)", letterSpacing: 2.5, fontWeight: 700, marginBottom: 6 }}>
