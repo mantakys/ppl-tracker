@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase, remoteLoad, remoteSave, getDeviceId, setDeviceId } from "./sync.js";
+import { haptic, hapticCelebrate, playDing, playCelebration, playClick, playMealCelebration } from "./feedback.js";
 
 const WK_KEY  = "ppl_v4";
 const NUT_KEY = "ppl_nut_v1";
@@ -184,6 +185,46 @@ const BASE_CSS = `
     font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
     transition: all .15s;
   }
+
+  @keyframes rowPop {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.025); }
+    100% { transform: scale(1); }
+  }
+  @keyframes flashFade {
+    0%   { opacity: 0.55; }
+    100% { opacity: 0; }
+  }
+  @keyframes celebBurst {
+    0%   { opacity: 0.7; transform: scale(0.95); }
+    40%  { opacity: 0.9; transform: scale(1.03); }
+    100% { opacity: 0;   transform: scale(1); }
+  }
+  @keyframes ring {
+    0%   { transform: translate(-50%,-50%) scale(0.2); opacity: 0.8; }
+    100% { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
+  }
+
+  .ex-row-done {
+    opacity: 0.42;
+  }
+  .ex-row-pop {
+    animation: rowPop 0.28s ease-out;
+  }
+  .screen-flash {
+    position: fixed; inset: 0; pointer-events: none; z-index: 998;
+    animation: flashFade 0.45s ease-out forwards;
+  }
+  .screen-celebrate {
+    position: fixed; inset: 0; pointer-events: none; z-index: 998;
+    animation: celebBurst 0.6s ease-out forwards;
+  }
+  .ring {
+    position: fixed; left: 50%; top: 45%; width: 100px; height: 100px;
+    border-radius: 50%; pointer-events: none; z-index: 999;
+    border: 3px solid currentColor;
+    animation: ring 0.6s ease-out forwards;
+  }
 `;
 
 // ── Main App ───────────────────────────────────────────────────────────────
@@ -198,7 +239,11 @@ export default function App() {
   const [syncStatus, setSyncStatus] = useState(supabase ? "syncing" : "offline");
   const [showDevice, setShowDevice] = useState(false);
   const [deviceInput, setDeviceInput] = useState("");
-  const debounceRef = useRef(null);
+  const [doneExs,    setDoneExs]    = useState(() => new Set());
+  const [flash,      setFlash]      = useState(null); // { type: "row"|"celebrate", color }
+  const [popEx,      setPopEx]      = useState(null); // exercise name being popped
+  const debounceRef  = useRef(null);
+  const flashTimeout = useRef(null);
 
   // ── Remote load on mount ───────────────────────────────────────────────
   useEffect(() => {
@@ -228,6 +273,44 @@ export default function App() {
   useEffect(() => { saveWk(sets);       scheduleSave(sets, nutChecks); }, [sets]);
   useEffect(() => { saveNut(nutChecks); scheduleSave(sets, nutChecks); }, [nutChecks]);
 
+  // ── Flash helper ───────────────────────────────────────────────────────
+  const fireFlash = (type, color) => {
+    clearTimeout(flashTimeout.current);
+    setFlash({ type, color });
+    flashTimeout.current = setTimeout(() => setFlash(null), 700);
+  };
+
+  // ── Exercise done toggle ───────────────────────────────────────────────
+  const toggleExDone = (ex, dayColor) => {
+    const wasAlreadyDone = doneExs.has(ex);
+    setDoneExs(prev => {
+      const next = new Set(prev);
+      wasAlreadyDone ? next.delete(ex) : next.add(ex);
+      return next;
+    });
+
+    if (!wasAlreadyDone) {
+      // Mark done — fire all three
+      haptic([45]);
+      playDing();
+      setPopEx(ex);
+      setTimeout(() => setPopEx(null), 320);
+      fireFlash("row", dayColor);
+
+      // Check if all exercises in this day are now done
+      const allExs = currentDay.exercises;
+      const newDone = new Set(doneExs);
+      newDone.add(ex);
+      if (allExs.every(e => newDone.has(e))) {
+        setTimeout(() => {
+          hapticCelebrate();
+          playCelebration();
+          fireFlash("celebrate", dayColor);
+        }, 350);
+      }
+    }
+  };
+
   // ── Workout handlers ───────────────────────────────────────────────────
   const openConfig = () => {
     const init = {};
@@ -253,14 +336,32 @@ export default function App() {
 
   // ── Nutrition handlers ─────────────────────────────────────────────────
   const toggleMeal = (dayNum, mealIdx) => {
+    let becomingChecked = false;
+    let allDone = false;
+
     setNutChecks(prev => {
       const key  = String(dayNum);
       const plan = PROTEIN_PLAN[dayNum - 1];
       const cur  = prev[key] ?? new Array(plan.meals.length).fill(false);
       const next = [...cur];
       next[mealIdx] = !next[mealIdx];
+      becomingChecked = next[mealIdx];
+      allDone = next.every(Boolean);
       return { ...prev, [key]: next };
     });
+
+    if (becomingChecked) {
+      haptic([40]);
+      playClick();
+      fireFlash("row", "#34d399");
+      if (allDone) {
+        setTimeout(() => {
+          hapticCelebrate();
+          playMealCelebration();
+          fireFlash("celebrate", "#34d399");
+        }, 300);
+      }
+    }
   };
 
   const dayComplete = (dayNum) => {
@@ -285,6 +386,17 @@ export default function App() {
   return (
     <>
       <style>{BASE_CSS}</style>
+
+      {/* ── Flash overlays ───────────────────────────────────────────── */}
+      {flash?.type === "row" && (
+        <div key={Date.now() + "f"} className="screen-flash" style={{ background: flash.color }} />
+      )}
+      {flash?.type === "celebrate" && (
+        <>
+          <div key={Date.now() + "c"} className="screen-celebrate" style={{ background: flash.color }} />
+          <div key={Date.now() + "r"} className="ring" style={{ color: flash.color }} />
+        </>
+      )}
 
       {/* ── WORKOUT view ─────────────────────────────────────────────── */}
       {view === "workout" && mode === "display" && (
@@ -343,16 +455,41 @@ export default function App() {
               </div>
             ) : (
               currentDay.exercises.map((ex, i) => {
-                const val = sets[ex];
+                const val  = sets[ex];
+                const done = doneExs.has(ex);
+                const popping = popEx === ex;
                 return (
-                  <div key={ex} className="ex-row" style={{ animationDelay: `${i * 35}ms` }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "oklch(78% 0.005 260)", flex: 1 }}>{ex}</div>
+                  <div
+                    key={ex}
+                    className={`ex-row${done ? " ex-row-done" : ""}${popping ? " ex-row-pop" : ""}`}
+                    style={{ animationDelay: `${i * 35}ms`, cursor: "pointer", userSelect: "none" }}
+                    onClick={() => toggleExDone(ex, currentDay.color)}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+                      {/* Done indicator */}
+                      <div style={{
+                        width: 18, height: 18, borderRadius: 5, flexShrink: 0,
+                        border: `1.5px solid ${done ? currentDay.color : "oklch(22% 0.005 260)"}`,
+                        background: done ? currentDay.color : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        transition: "all .15s",
+                      }}>
+                        {done && (
+                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                            <path d="M1 3.5L3.8 6.5L9 1" stroke="oklch(8% 0.005 260)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: done ? "oklch(40% 0.005 260)" : "oklch(78% 0.005 260)", textDecoration: done ? "line-through" : "none", transition: "color .15s" }}>
+                        {ex}
+                      </div>
+                    </div>
                     <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
                       {val ? (
                         <div className="mono" style={{
                           fontSize: 14, fontWeight: 500,
-                          color: currentDay.color,
-                          letterSpacing: -0.3, whiteSpace: "nowrap",
+                          color: done ? "oklch(35% 0.005 260)" : currentDay.color,
+                          letterSpacing: -0.3, whiteSpace: "nowrap", transition: "color .15s",
                         }}>
                           {val}
                         </div>
